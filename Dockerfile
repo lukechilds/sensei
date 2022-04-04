@@ -27,6 +27,8 @@ RUN [ "$BUILDARCH" = "amd64" ] && echo "x86_64-unknown-linux-gnu" > /target || t
 # Add the target
 RUN rustup target add $(cat /target)
 
+# Copy in the source
+# (We do this just in time so the above commands can run async while web-admin is building)
 COPY --from=build-web-admin /build/web-admin/build/ /build/web-admin/build/
 
 # Cross compile to the target
