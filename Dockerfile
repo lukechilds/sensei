@@ -17,8 +17,6 @@ WORKDIR /build
 
 COPY . .
 
-COPY --from=build-web-admin /build/web-admin/build/ /build/web-admin/build/
-
 RUN rustup component add rustfmt
 
 # Figure out which target to cross compile for
@@ -28,6 +26,8 @@ RUN [ "$BUILDARCH" = "amd64" ] && echo "x86_64-unknown-linux-gnu" > /target || t
 
 # Add the target
 RUN rustup target add $(cat /target)
+
+COPY --from=build-web-admin /build/web-admin/build/ /build/web-admin/build/
 
 # Cross compile to the target
 RUN cargo build --target=$(cat /target) --verbose --release
