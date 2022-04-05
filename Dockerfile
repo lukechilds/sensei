@@ -30,8 +30,8 @@ RUN rustup component add rustfmt
 
 # Figure out which target to cross compile for
 ARG TARGETARCH
-RUN [ "$TARGETARCH" = "arm64" ] && echo "aarch64-unknown-linux-gnu" > /target || true
-RUN [ "$TARGETARCH" = "amd64" ] && echo "x86_64-unknown-linux-gnu" > /target || true
+RUN [ "$TARGETARCH" = "arm64" ] && echo "aarch64-unknown-linux-musl" > /target || true
+RUN [ "$TARGETARCH" = "amd64" ] && echo "x86_64-unknown-linux-musl" > /target || true
 
 # Add the target
 RUN rustup target add $(cat /target)
