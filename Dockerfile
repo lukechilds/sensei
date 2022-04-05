@@ -26,9 +26,9 @@ FROM --platform=$BUILDPLATFORM rust:1.56 as build-sensei
 WORKDIR /build
 
 # Figure out which target to cross compile for
-ARG BUILDARCH
-RUN [ "$BUILDARCH" = "arm64" ] && echo "aarch64-unknown-linux-gnu" > /target || true
-RUN [ "$BUILDARCH" = "amd64" ] && echo "x86_64-unknown-linux-gnu" > /target || true
+ARG TARGETARCH
+RUN [ "$TARGETARCH" = "arm64" ] && echo "aarch64-unknown-linux-gnu" > /target || true
+RUN [ "$TARGETARCH" = "amd64" ] && echo "x86_64-unknown-linux-gnu" > /target || true
 
 # Add the target
 RUN rustup target add $(cat /target)
