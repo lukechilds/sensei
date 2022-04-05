@@ -1,23 +1,29 @@
 # web-admin builder
+# -----------------
 FROM --platform=$BUILDPLATFORM node:16 as build-web-admin
 
+# Change to build dir
 WORKDIR /build
 
-COPY . .
-
+# Build and cache deps first
+COPY ./web-admin/package.json /build/web-admin/package.json
+COPY ./web-admin/package-lock.json /build/web-admin/package-lock.json
 WORKDIR /build/web-admin
 RUN npm install
+
+# Copy in source
+COPY ./web-admin /build/web-admin
+
+# Build web-admin
 RUN npm run build
 
 
 # sensei builder
+# --------------
 FROM --platform=$BUILDPLATFORM rust:1.56 as build-sensei
 
+# Change to build dir
 WORKDIR /build
-
-COPY . .
-
-RUN rustup component add rustfmt
 
 # Figure out which target to cross compile for
 ARG BUILDARCH
@@ -27,11 +33,30 @@ RUN [ "$BUILDARCH" = "amd64" ] && echo "x86_64-unknown-linux-gnu" > /target || t
 # Add the target
 RUN rustup target add $(cat /target)
 
-# Copy in the source
-# (We do this just in time so the above commands can run async while web-admin is building)
+# Add rustfmt
+RUN rustup component add rustfmt
+
+# Cache deps first
+COPY Cargo.toml .
+COPY Cargo.lock .
+RUN mkdir "src"
+RUN echo "fn main() {}" > "src/main.rs"
+RUN echo "fn main() {}" > "src/cli.rs"
+
+# Cross compile deps
+RUN cargo build --target=$(cat /target) --verbose --release
+
+# Clean up dummy files
+RUN rm "src/main.rs"
+RUN rm "src/cli.rs"
+
+# Copy in source
+COPY . .
+
+# Copy in built web admin
 COPY --from=build-web-admin /build/web-admin/build/ /build/web-admin/build/
 
-# Cross compile to the target
+# Cross compile sensei
 RUN cargo build --target=$(cat /target) --verbose --release
 
 # Move to a canonical location so we can copy it in the next build stage
@@ -39,6 +64,7 @@ RUN cp /build/target/$(cat /target)/release/senseid /build/target/release/sensei
 
 
 # Final image
+# -----------
 FROM --platform=$TARGETPLATFORM rust:1.56
 
 # copy the build artifact from the build stage
