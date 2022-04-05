@@ -39,6 +39,7 @@ RUN rustup target add $(cat /target)
 # Install cross platform gcc toolchains
 RUN apt-get update
 RUN apt-get install -y gcc-x86-64-linux-gnu gcc-aarch64-linux-gnu
+RUN apt-get install -y musl-tools
 
 # Cache deps first
 COPY Cargo.toml .
