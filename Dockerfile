@@ -25,6 +25,9 @@ FROM --platform=$BUILDPLATFORM rust:1.56 as build-sensei
 # Change to build dir
 WORKDIR /build
 
+# Add rustfmt
+RUN rustup component add rustfmt
+
 # Figure out which target to cross compile for
 ARG TARGETARCH
 RUN [ "$TARGETARCH" = "arm64" ] && echo "aarch64-unknown-linux-gnu" > /target || true
@@ -33,8 +36,9 @@ RUN [ "$TARGETARCH" = "amd64" ] && echo "x86_64-unknown-linux-gnu" > /target || 
 # Add the target
 RUN rustup target add $(cat /target)
 
-# Add rustfmt
-RUN rustup component add rustfmt
+# Install cross platform gcc toolchains
+RUN apt-get update
+RUN apt-get install -y gcc-x86-64-linux-gnu gcc-aarch64-linux-gnu
 
 # Cache deps first
 COPY Cargo.toml .
