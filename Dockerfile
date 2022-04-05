@@ -30,8 +30,10 @@ RUN rustup component add rustfmt
 
 # Figure out which target to cross compile for
 ARG TARGETARCH
-RUN [ "$TARGETARCH" = "arm64" ] && echo "aarch64-unknown-linux-musl" > /target || true
-RUN [ "$TARGETARCH" = "amd64" ] && echo "x86_64-unknown-linux-musl" > /target || true
+# RUN [ "$TARGETARCH" = "arm64" ] && echo "aarch64-unknown-linux-musl" > /target || true
+# RUN [ "$TARGETARCH" = "amd64" ] && echo "x86_64-unknown-linux-musl" > /target || true
+RUN [ "$TARGETARCH" = "arm64" ] && echo "aarch64-unknown-linux-gnu" > /target || true
+RUN [ "$TARGETARCH" = "amd64" ] && echo "x86_64-unknown-linux-gnu" > /target || true
 
 # Add the target
 RUN rustup target add $(cat /target)
@@ -40,6 +42,9 @@ RUN rustup target add $(cat /target)
 RUN apt-get update
 RUN apt-get install -y gcc-x86-64-linux-gnu gcc-aarch64-linux-gnu
 RUN apt-get install -y musl-tools
+
+ENV CC=arm-linux-gnueabihf-gcc
+ENV CC_arm_unknown_linux_gnu=arm-linux-gnueabihf-gcc-with-link-search
 
 # Cache deps first
 COPY Cargo.toml .
